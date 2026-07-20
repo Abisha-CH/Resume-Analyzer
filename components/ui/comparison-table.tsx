@@ -10,17 +10,13 @@ export interface ComparisonRow {
 
 export interface ComparisonTableProps {
   rows: ComparisonRow[];
-  /** Column header for the "others" side */
   othersLabel?: string;
-  /** Column header for the "ours" side */
   oursLabel?: string;
-  /** Optional aria-label for the table */
   label?: string;
 }
 
 /**
  * Reusable comparison table with animated rows.
- * Displays two-column comparison between competitors and our platform.
  */
 export function ComparisonTable({
   rows,
@@ -29,19 +25,19 @@ export function ComparisonTable({
   label = "Feature comparison table",
 }: ComparisonTableProps) {
   return (
-    <div className="overflow-hidden rounded-2xl border border-gray-200 shadow-sm">
+    <div className="overflow-hidden rounded-2xl border border-border shadow-md shadow-foreground/5">
       <table className="w-full" aria-label={label}>
         <thead>
-          <tr className="border-b border-gray-200">
+          <tr className="border-b border-border">
             <th
               scope="col"
-              className="w-1/2 bg-red-50 px-6 py-4 text-left text-sm font-semibold text-red-700"
+              className="w-1/2 bg-error-light px-6 py-4 text-left text-xs font-semibold uppercase tracking-wide text-error"
             >
               {othersLabel}
             </th>
             <th
               scope="col"
-              className="w-1/2 bg-blue-600 px-6 py-4 text-left text-sm font-semibold text-white"
+              className="w-1/2 bg-primary px-6 py-4 text-left text-xs font-semibold uppercase tracking-wide text-white"
             >
               {oursLabel}
             </th>
@@ -51,27 +47,21 @@ export function ComparisonTable({
           {rows.map((row, i) => (
             <motion.tr
               key={i}
-              className="border-b border-gray-100 last:border-0"
+              className="border-b border-border-subtle last:border-0"
               initial={{ opacity: 0 }}
               whileInView={{ opacity: 1 }}
               viewport={{ once: true }}
-              transition={{ duration: 0.3, delay: i * 0.06 }}
+              transition={{ duration: 0.3, delay: i * 0.05 }}
             >
-              <td className="bg-white px-6 py-4">
-                <span className="flex items-center gap-2 text-sm text-gray-600">
-                  <X
-                    className="h-4 w-4 flex-shrink-0 text-red-400"
-                    aria-hidden="true"
-                  />
+              <td className="bg-surface px-6 py-3.5">
+                <span className="flex items-center gap-2 text-sm text-foreground-muted">
+                  <X className="h-4 w-4 flex-shrink-0 text-error" aria-hidden="true" />
                   {row.others}
                 </span>
               </td>
-              <td className="bg-blue-50 px-6 py-4">
-                <span className="flex items-center gap-2 text-sm font-medium text-blue-800">
-                  <Check
-                    className="h-4 w-4 flex-shrink-0 text-blue-600"
-                    aria-hidden="true"
-                  />
+              <td className="bg-primary-light px-6 py-3.5">
+                <span className="flex items-center gap-2 text-sm font-medium text-primary">
+                  <Check className="h-4 w-4 flex-shrink-0 text-success" aria-hidden="true" />
                   {row.ours}
                 </span>
               </td>

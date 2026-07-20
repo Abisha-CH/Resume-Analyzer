@@ -1,28 +1,41 @@
+"use client";
+
+import { motion } from "framer-motion";
 import { socialProof } from "@/content/landing";
 
 export function SocialProofSection() {
   return (
-    <section className="border-y border-gray-100 bg-white py-10">
-      <div className="mx-auto max-w-6xl px-4 sm:px-6 lg:px-8 text-center">
-        <p className="text-sm font-medium text-gray-500 mb-5">
-          {socialProof.headline}
-        </p>
-        <p className="text-xs text-gray-400 mb-3 uppercase tracking-wide">
+    <section
+      aria-label="Trusted platforms"
+      className="border-y border-border-subtle bg-surface py-10"
+    >
+      <div className="mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
+        <p className="mb-1 text-center text-xs font-semibold uppercase tracking-widest text-foreground-subtle">
           {socialProof.subheadline}
         </p>
-        <div
-          className="flex flex-wrap justify-center gap-3"
+        <p className="mb-7 text-center text-sm text-foreground-muted">
+          {socialProof.headline}
+        </p>
+
+        <ul
+          className="flex flex-wrap justify-center gap-2.5"
           aria-label="Supported job platforms"
+          role="list"
         >
-          {socialProof.platforms.map((platform) => (
-            <span
+          {socialProof.platforms.map((platform, i) => (
+            <motion.li
               key={platform}
-              className="rounded-full border border-gray-200 bg-gray-50 px-4 py-1.5 text-sm font-medium text-gray-600"
+              initial={{ opacity: 0, y: 6 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.3, delay: i * 0.05, ease: "easeOut" }}
             >
-              {platform}
-            </span>
+              <span className="inline-flex cursor-default select-none items-center rounded-full border border-border bg-surface-subtle px-4 py-1.5 text-sm font-medium text-foreground-muted transition-all duration-200 hover:border-primary-muted hover:bg-primary-light hover:text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-1">
+                {platform}
+              </span>
+            </motion.li>
           ))}
-        </div>
+        </ul>
       </div>
     </section>
   );

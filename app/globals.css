@@ -1,10 +1,74 @@
 @import "tailwindcss";
 
+/* ─── Tailwind v4 Design Token System ──────────────────────────────────────── */
+/*
+ * Premium AI SaaS color palette
+ * Inspired by Vercel, Linear, Clerk, Perplexity
+ */
+@theme {
+  /* ── Primary brand (indigo-violet) ─────────────────────────────────────── */
+  --color-primary:          #6F73D2;
+  --color-primary-hover:    #5E63C9;
+  --color-primary-light:    #EEEEFF; /* tint for backgrounds/icons */
+  --color-primary-muted:    #C7C9EE; /* tint for borders */
+
+  /* ── Secondary / accent ─────────────────────────────────────────────────── */
+  --color-secondary:        #83C9F4;
+  --color-accent:           #A3D5FF;
+  --color-accent-light:     #EBF6FF;
+
+  /* ── Surfaces ───────────────────────────────────────────────────────────── */
+  --color-background:       #F8FBFF; /* page background */
+  --color-surface:          #FFFFFF; /* card / panel surface */
+  --color-surface-raised:   #FFFFFF; /* elevated cards */
+  --color-surface-subtle:   #F0F6FF; /* muted section bg */
+
+  /* ── Borders ─────────────────────────────────────────────────────────────── */
+  --color-border:           #D9F0FF;
+  --color-border-subtle:    #EBF6FF;
+
+  /* ── Text ───────────────────────────────────────────────────────────────── */
+  --color-foreground:       #0F172A; /* headings */
+  --color-foreground-muted: #64748B; /* body / secondary text */
+  --color-foreground-subtle:#94A3B8; /* placeholder / caption */
+
+  /* ── State colors ────────────────────────────────────────────────────────── */
+  --color-success:          #22C55E;
+  --color-success-light:    #F0FDF4;
+  --color-success-muted:    #BBF7D0;
+  --color-warning:          #F59E0B;
+  --color-warning-light:    #FFFBEB;
+  --color-error:            #EF4444;
+  --color-error-light:      #FEF2F2;
+  --color-error-muted:      #FECACA;
+
+  /* ── Comparison table ─────────────────────────────────────────────────────── */
+  --color-table-ours-bg:    #6F73D2; /* primary */
+  --color-table-ours-text:  #FFFFFF;
+  --color-table-ours-row:   #F0F2FF;
+  --color-table-ours-check: #22C55E;
+
+  /* ── Border radius ───────────────────────────────────────────────────────── */
+  --radius-sm:   0.375rem;
+  --radius:      0.5rem;
+  --radius-md:   0.75rem;
+  --radius-lg:   1rem;
+  --radius-xl:   1.25rem;
+  --radius-2xl:  1.5rem;
+  --radius-full: 9999px;
+
+  /* ── Typography ──────────────────────────────────────────────────────────── */
+  --font-sans: "Inter", system-ui, sans-serif;
+}
+
+/* ─── Base ───────────────────────────────────────────────────────────────────── */
 :root {
   --font-inter: "Inter", sans-serif;
 }
 
-* {
+*,
+*::before,
+*::after {
   box-sizing: border-box;
 }
 
@@ -14,6 +78,31 @@ html {
 
 body {
   font-family: var(--font-inter), system-ui, sans-serif;
+  background-color: var(--color-background);
+  color: var(--color-foreground);
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+}
+
+/* ─── Focus visible ──────────────────────────────────────────────────────────── */
+:focus-visible {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 2px;
+}
+
+/* ─── Reduced motion ─────────────────────────────────────────────────────────── */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* ─── Text balance utility ───────────────────────────────────────────────────── */
+.text-balance {
+  text-wrap: balance;
 }

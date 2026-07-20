@@ -10,13 +10,13 @@ export interface ButtonProps
 
 const variantClasses: Record<NonNullable<ButtonProps["variant"]>, string> = {
   primary:
-    "bg-blue-600 text-white hover:bg-blue-700 focus-visible:ring-blue-500 shadow-sm",
+    "bg-primary text-white hover:bg-primary-hover focus-visible:ring-primary shadow-sm",
   secondary:
-    "bg-white text-blue-600 border border-blue-600 hover:bg-blue-50 focus-visible:ring-blue-500",
+    "bg-surface text-primary border border-primary hover:bg-primary-light focus-visible:ring-primary",
   outline:
-    "border border-gray-300 bg-transparent text-gray-700 hover:bg-gray-50 focus-visible:ring-gray-400",
+    "border border-border bg-transparent text-foreground hover:bg-surface-subtle focus-visible:ring-primary",
   ghost:
-    "bg-transparent text-gray-700 hover:bg-gray-100 focus-visible:ring-gray-400",
+    "bg-transparent text-foreground-muted hover:bg-surface-subtle focus-visible:ring-primary",
 };
 
 const sizeClasses: Record<NonNullable<ButtonProps["size"]>, string> = {

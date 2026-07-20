@@ -13,10 +13,11 @@ import type {
 // ─── Metadata ────────────────────────────────────────────────────────────────
 
 export const siteMetadata = {
-  title: "AI Resume Analyzer Pakistan | ATS Resume Checker",
+  title: "ResuMind | AI Resume Analyzer & ATS Checker",
   description:
     "Upload your resume and receive an instant AI-powered analysis that shows exactly why recruiters may reject your CV—and how to fix it. Free ATS resume checker built for Pakistan.",
   keywords: [
+    "ResuMind",
     "AI Resume Analyzer Pakistan",
     "ATS Resume Checker Pakistan",
     "Resume Checker Pakistan",
@@ -279,7 +280,7 @@ export const finalCTA = {
 // ─── Footer ───────────────────────────────────────────────────────────────────
 
 export const footer = {
-  brand: "Resume Analyzer Pakistan",
+  brand: "ResuMind",
   tagline: "AI-powered resume analysis built for Pakistani job seekers.",
   linkGroups: [
     {
@@ -287,7 +288,7 @@ export const footer = {
       links: [
         { label: "Features", href: "#features" },
         { label: "Pricing", href: "#pricing" },
-        { label: "Sample Report", href: "#" },
+        { label: "Sample Report", href: "/resume-overview" },
       ],
     },
     {
@@ -307,5 +308,5 @@ export const footer = {
       ],
     },
   ] satisfies FooterLinkGroup[],
-  copyright: `© ${new Date().getFullYear()} Resume Analyzer Pakistan. All rights reserved.`,
+  copyright: `© ${new Date().getFullYear()} ResuMind. All rights reserved.`,
 };

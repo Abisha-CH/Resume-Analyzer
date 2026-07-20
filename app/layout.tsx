@@ -2,13 +2,13 @@ import type { Metadata } from "next";
 import { Inter } from "next/font/google";
 import "./globals.css";
 import { siteMetadata } from "@/content/landing";
+import { Providers } from "@/components/providers";
 
 const inter = Inter({
   subsets: ["latin"],
   variable: "--font-inter",
 });
-
-const BASE_URL = process.env.NEXT_PUBLIC_BASE_URL ?? "https://resumeanalyzerpakistan.com";
+const BASE_URL = process.env.NEXT_PUBLIC_BASE_URL ?? "https://resumind.app";
 
 export const metadata: Metadata = {
   metadataBase: new URL(BASE_URL),
@@ -22,7 +22,7 @@ export const metadata: Metadata = {
     title: siteMetadata.title,
     description: siteMetadata.description,
     url: BASE_URL,
-    siteName: "Resume Analyzer Pakistan",
+    siteName: "ResuMind",
     locale: "en_PK",
     type: "website",
     images: [
@@ -30,7 +30,7 @@ export const metadata: Metadata = {
         url: "/og-image.png",
         width: 1200,
         height: 630,
-        alt: "AI Resume Analyzer Pakistan — ATS Resume Checker",
+        alt: "ResuMind — AI Resume Analyzer & ATS Checker",
       },
     ],
   },
@@ -46,7 +46,7 @@ export const metadata: Metadata = {
 const jsonLd = {
   "@context": "https://schema.org",
   "@type": "WebApplication",
-  name: "Resume Analyzer Pakistan",
+  name: "ResuMind",
   url: BASE_URL,
   description: siteMetadata.description,
   applicationCategory: "BusinessApplication",
@@ -77,7 +77,7 @@ export default function RootLayout({
         />
       </head>
       <body className={`${inter.variable} font-sans antialiased`}>
-        {children}
+        <Providers>{children}</Providers>
       </body>
     </html>
   );

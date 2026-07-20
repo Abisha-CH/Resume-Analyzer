@@ -11,7 +11,6 @@ export interface FAQItem {
 
 export interface FAQAccordionProps {
   items: FAQItem[];
-  /** Optional className for the outer dl element */
   className?: string;
 }
 
@@ -26,7 +25,7 @@ export function FAQAccordion({ items, className }: FAQAccordionProps) {
     setOpenIndex((prev) => (prev === i ? null : i));
 
   return (
-    <dl className={cn("space-y-3", className)}>
+    <dl className={cn("space-y-2.5", className)}>
       {items.map((item, i) => {
         const isOpen = openIndex === i;
         const triggerId = `faq-trigger-${i}`;
@@ -35,13 +34,16 @@ export function FAQAccordion({ items, className }: FAQAccordionProps) {
         return (
           <div
             key={item.question}
-            className="overflow-hidden rounded-xl border border-gray-200 bg-gray-50"
+            className={cn(
+              "overflow-hidden rounded-xl border bg-surface transition-colors duration-150",
+              isOpen ? "border-primary-muted" : "border-border"
+            )}
           >
             <dt>
               <button
                 id={triggerId}
                 type="button"
-                className="flex w-full items-center justify-between px-5 py-4 text-left text-sm font-medium text-gray-900 transition-colors hover:bg-gray-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-blue-500"
+                className="flex w-full items-center justify-between px-5 py-4 text-left text-sm font-medium text-foreground transition-colors hover:bg-surface-subtle focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-primary"
                 onClick={() => toggle(i)}
                 aria-expanded={isOpen}
                 aria-controls={panelId}
@@ -49,8 +51,8 @@ export function FAQAccordion({ items, className }: FAQAccordionProps) {
                 {item.question}
                 <ChevronDown
                   className={cn(
-                    "ml-4 h-4 w-4 flex-shrink-0 text-gray-500 transition-transform duration-200",
-                    isOpen && "rotate-180"
+                    "ml-4 h-4 w-4 flex-shrink-0 text-foreground-muted transition-transform duration-200",
+                    isOpen && "rotate-180 text-primary"
                   )}
                   aria-hidden="true"
                 />
@@ -61,8 +63,8 @@ export function FAQAccordion({ items, className }: FAQAccordionProps) {
               role="region"
               aria-labelledby={triggerId}
               className={cn(
-                "overflow-hidden text-sm text-gray-600 transition-all duration-200",
-                isOpen ? "max-h-60 px-5 pb-4 pt-1" : "max-h-0"
+                "overflow-hidden text-sm text-foreground-muted transition-all duration-200",
+                isOpen ? "max-h-60 border-t border-border-subtle px-5 pb-5 pt-3" : "max-h-0"
               )}
             >
               {item.answer}

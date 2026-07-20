@@ -31,16 +31,16 @@ export function FeaturesSection() {
         subheading="Everything you need to turn your resume into an interview magnet."
       />
 
-      <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
+      <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
         {features.map((feature, i) => {
           const Icon = iconMap[feature.icon] ?? BarChart3;
           return (
             <motion.div
               key={feature.title}
-              initial={{ opacity: 0, y: 16 }}
+              initial={{ opacity: 0, y: 20 }}
               whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ duration: 0.35, delay: i * 0.07 }}
+              viewport={{ once: true, margin: "-40px" }}
+              transition={{ duration: 0.4, delay: i * 0.06, ease: "easeOut" }}
             >
               <FeatureCard
                 icon={Icon}

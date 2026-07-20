@@ -9,20 +9,31 @@
     "lint": "next lint"
   },
   "dependencies": {
+    "@clerk/nextjs": "^6.39.6",
+    "@hookform/resolvers": "^5.4.0",
+    "@supabase/ssr": "^0.12.3",
+    "@supabase/supabase-js": "^2.110.7",
     "@tailwindcss/postcss": "^4.3.2",
     "clsx": "^2.1.1",
+    "dotenv": "^17.4.2",
+    "drizzle-orm": "^0.45.2",
     "framer-motion": "^12.42.2",
     "lucide-react": "^1.23.0",
-    "next": "15.1.0",
+    "next": "^16.2.10",
+    "postgres": "^3.4.9",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
-    "tailwind-merge": "^3.6.0"
+    "react-hook-form": "^7.82.0",
+    "svix": "^1.98.0",
+    "tailwind-merge": "^3.6.0",
+    "zod": "^4.4.3"
   },
   "devDependencies": {
     "@eslint/eslintrc": "^3",
     "@types/node": "^20",
     "@types/react": "^19",
     "@types/react-dom": "^19",
+    "drizzle-kit": "^0.31.10",
     "eslint": "^9",
     "eslint-config-next": "15.1.0",
     "postcss": "^8.5.16",

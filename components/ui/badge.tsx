@@ -2,14 +2,14 @@ import * as React from "react";
 import { cn } from "@/lib/utils";
 
 export interface BadgeProps extends React.HTMLAttributes<HTMLSpanElement> {
-  variant?: "default" | "success" | "blue" | "outline";
+  variant?: "default" | "success" | "primary" | "outline";
 }
 
 const variantClasses: Record<NonNullable<BadgeProps["variant"]>, string> = {
-  default: "bg-gray-100 text-gray-700",
-  success: "bg-green-100 text-green-700",
-  blue: "bg-blue-100 text-blue-700",
-  outline: "border border-gray-300 text-gray-600 bg-transparent",
+  default:  "bg-surface-subtle text-foreground-muted border border-border",
+  success:  "bg-success-light text-success border border-success-muted",
+  primary:  "bg-primary-light text-primary border border-primary-muted",
+  outline:  "border border-border text-foreground-muted bg-transparent",
 };
 
 const Badge = React.forwardRef<HTMLSpanElement, BadgeProps>(

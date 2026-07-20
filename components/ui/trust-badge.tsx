@@ -4,23 +4,19 @@ import { cn } from "@/lib/utils";
 
 export interface TrustBadgeProps extends React.HTMLAttributes<HTMLSpanElement> {
   /** Color variant */
-  variant?: "green" | "blue" | "gray";
+  variant?: "green" | "primary" | "gray";
   /** Whether to show the leading check icon */
   showIcon?: boolean;
 }
 
 const variantClasses: Record<NonNullable<TrustBadgeProps["variant"]>, string> = {
-  green:
-    "border-green-200 bg-green-50 text-green-700",
-  blue:
-    "border-blue-100 bg-blue-50 text-blue-700",
-  gray:
-    "border-gray-200 bg-gray-50 text-gray-600",
+  green:   "border-success-muted bg-success-light text-success",
+  primary: "border-primary-muted bg-primary-light text-primary",
+  gray:    "border-border bg-surface-subtle text-foreground-muted",
 };
 
 /**
  * Small reassurance pill used for trust indicators throughout the page.
- * Examples: "No Credit Card Required", "Secure Upload", "Results in 30s"
  */
 export function TrustBadge({
   className,

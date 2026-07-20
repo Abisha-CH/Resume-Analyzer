@@ -313,7 +313,7 @@ No credit card required • Instant feedback • Secure upload
 
 # Footer
 
-Resume Analyzer Pakistan
+ResuMind
 
 Features
 

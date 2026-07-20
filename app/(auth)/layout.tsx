@@ -1,12 +1,11 @@
 import type { ReactNode } from "react";
 
 /**
- * Auth layout — wraps sign-in, sign-up, and password reset pages.
- * Clerk authentication will be integrated here in Phase 2.
+ * Auth layout — centred card container for Clerk's hosted sign-in / sign-up.
  */
 export default function AuthLayout({ children }: { children: ReactNode }) {
   return (
-    <div className="flex min-h-screen items-center justify-center bg-gray-50">
+    <div className="flex min-h-screen items-center justify-center bg-surface-subtle px-4">
       {children}
     </div>
   );

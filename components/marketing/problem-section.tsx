@@ -6,52 +6,62 @@ import { problem } from "@/content/landing";
 
 export function ProblemSection() {
   return (
-    <section className="bg-gray-50 py-20 sm:py-24">
-      <div className="mx-auto max-w-4xl px-4 sm:px-6 lg:px-8">
+    <section className="bg-surface-subtle py-20 sm:py-24">
+      <div className="mx-auto max-w-3xl px-4 sm:px-6 lg:px-8">
         {/* Stat banner */}
-        <div className="mb-12 rounded-2xl bg-blue-600 px-8 py-10 text-center text-white shadow-md">
-          <p className="text-6xl font-extrabold tabular-nums">{problem.stat}</p>
-          <p className="mt-2 text-lg font-medium text-blue-100">
+        <motion.div
+          className="mb-14 overflow-hidden rounded-2xl bg-primary px-8 py-10 text-center shadow-lg shadow-primary/20"
+          initial={{ opacity: 0, y: 16 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true }}
+          transition={{ duration: 0.45, ease: "easeOut" }}
+        >
+          <p className="text-6xl font-extrabold tabular-nums text-white sm:text-7xl">
+            {problem.stat}
+          </p>
+          <p className="mt-2 text-base font-medium text-accent sm:text-lg">
             {problem.statDescription}
           </p>
-        </div>
+        </motion.div>
 
-        <h2 className="mb-8 text-center text-3xl font-bold text-gray-900 sm:text-4xl">
-          {problem.headline}
-        </h2>
+        <div className="mb-10 text-center">
+          <h2 className="text-3xl font-bold text-foreground sm:text-4xl">
+            {problem.headline}
+          </h2>
+        </div>
 
         <ul className="space-y-3" aria-label="Common resume rejection reasons">
           {problem.items.map((item, i) => (
             <motion.li
               key={item}
-              className="flex items-start gap-3 rounded-xl border border-red-100 bg-white px-5 py-4 shadow-sm"
-              initial={{ opacity: 0, x: -12 }}
+              className="flex items-start gap-3 rounded-xl border border-error-muted bg-surface px-5 py-4 shadow-sm"
+              initial={{ opacity: 0, x: -16 }}
               whileInView={{ opacity: 1, x: 0 }}
-              viewport={{ once: true }}
-              transition={{ duration: 0.35, delay: i * 0.07 }}
+              viewport={{ once: true, margin: "-20px" }}
+              transition={{ duration: 0.35, delay: i * 0.07, ease: "easeOut" }}
             >
               <XCircle
-                className="mt-0.5 h-5 w-5 flex-shrink-0 text-red-500"
+                className="mt-0.5 h-5 w-5 flex-shrink-0 text-error"
                 aria-hidden="true"
               />
-              <span className="text-gray-700">{item}</span>
+              <span className="text-sm text-foreground-muted">{item}</span>
             </motion.li>
           ))}
         </ul>
 
         {/* Solution line */}
         <motion.div
-          className="mt-8 flex items-start gap-3 rounded-xl bg-green-50 px-5 py-4 shadow-sm border border-green-200"
-          initial={{ opacity: 0, y: 10 }}
+          className="mt-5 flex items-start gap-3 rounded-xl border border-success-muted bg-success-light px-5 py-4 shadow-sm"
+          initial={{ opacity: 0, y: 12 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
-          transition={{ duration: 0.35, delay: 0.4 }}
+          transition={{ duration: 0.4, delay: 0.38, ease: "easeOut" }}
         >
           <CheckCircle2
-            className="mt-0.5 h-5 w-5 flex-shrink-0 text-green-600"
+            className="mt-0.5 h-5 w-5 flex-shrink-0 text-success"
             aria-hidden="true"
           />
-          <span className="font-medium text-green-800">{problem.solution}</span>
+          <span className="text-sm font-medium text-foreground">{problem.solution}</span>
         </motion.div>
       </div>
     </section>

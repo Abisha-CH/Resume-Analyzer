@@ -11,10 +11,10 @@ export interface SectionProps extends React.HTMLAttributes<HTMLElement> {
 }
 
 const bgClasses: Record<NonNullable<SectionProps["bg"]>, string> = {
-  white: "bg-white",
-  gray: "bg-gray-50",
-  blue: "bg-blue-600",
-  none: "",
+  white: "bg-surface",
+  gray:  "bg-surface-subtle",
+  blue:  "bg-primary",
+  none:  "",
 };
 
 const sizeClasses: Record<NonNullable<SectionProps["size"]>, string> = {
@@ -94,7 +94,7 @@ export function SectionHeading({
       <h2
         className={cn(
           "text-3xl font-bold tracking-tight sm:text-4xl",
-          inverted ? "text-white" : "text-gray-900"
+          inverted ? "text-white" : "text-foreground"
         )}
       >
         {heading}
@@ -103,7 +103,7 @@ export function SectionHeading({
         <p
           className={cn(
             "mx-auto mt-3 max-w-2xl text-lg",
-            inverted ? "text-blue-100" : "text-gray-500"
+            inverted ? "text-accent" : "text-foreground-muted"
           )}
         >
           {subheading}

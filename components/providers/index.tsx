@@ -1,15 +1,21 @@
 "use client";
 
 import type { ReactNode } from "react";
+import { ClerkProvider } from "@clerk/nextjs";
 
 interface ProvidersProps {
   children: ReactNode;
 }
 
 /**
- * Root providers wrapper.
- * Phase 2: wrap with <ClerkProvider> and <ThemeProvider> here.
+ * Root client providers.
+ * ClerkProvider must wrap the entire app so that useAuth / useUser
+ * hooks work from any Client Component.
  */
 export function Providers({ children }: ProvidersProps) {
-  return <>{children}</>;
+  return (
+    <ClerkProvider publishableKey={process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY ?? ""}>
+      {children}
+    </ClerkProvider>
+  );
 }
