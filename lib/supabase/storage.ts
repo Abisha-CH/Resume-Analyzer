@@ -72,3 +72,18 @@ export async function deleteResume(path: string): Promise<boolean> {
   const { error } = await supabase.storage.from(BUCKET).remove([path]);
   return !error;
 }
+
+/**
+ * Download a resume file from Supabase Storage as a Buffer.
+ * Uses the service client for direct server-side access — no signed URL is generated.
+ * Returns null if the file does not exist or an error occurs.
+ */
+export async function downloadResume(path: string): Promise<Buffer | null> {
+  const supabase = createServiceClient()
+  const { data, error } = await supabase.storage.from(BUCKET).download(path)
+  if (error || !data) {
+    console.error("[storage] downloadResume failed — bucket:", BUCKET, "path:", path, "error:", error?.message ?? "no data returned")
+    return null
+  }
+  return Buffer.from(await data.arrayBuffer())
+}

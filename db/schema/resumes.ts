@@ -12,6 +12,7 @@ import { users } from "./users";
 export const resumeStatusEnum = pgEnum("resume_status", [
   "pending",
   "processing",
+  "parsed",
   "analyzed",
   "failed",
 ]);
