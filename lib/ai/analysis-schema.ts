@@ -14,6 +14,11 @@ const PriorityFixSchema = z.object({
   explanation: z.string().max(400),
   scoreGain:   z.number().int().min(0).max(20),
   effort:      z.enum(["5 min", "15 min", "30 min", "1 hour"]),
+  // Evidence-based enrichment fields (optional — legacy DB rows still validate)
+  evidence:        z.string().max(500).optional(),
+  recommendation:  z.string().max(500).optional(),
+  estimatedImpact: z.enum(["low", "medium", "high"]).optional(),
+  estimatedEffort: z.string().max(60).optional(),
 });
 
 const AIRecommendationSchema = z.object({
@@ -24,13 +29,27 @@ const AIRecommendationSchema = z.object({
   preview:   z.string().max(600),
 });
 
+export const ProjectDetailSchema = z.object({
+  name:                  z.string().max(120),
+  technologiesDetected:  z.array(z.string().max(60)).max(15),
+  descriptionQuality:    z.enum(["missing", "minimal", "adequate", "detailed"]),
+  hasActionVerbs:        z.boolean(),
+  hasMeasurableOutcomes: z.boolean(),
+  clarityScore:          z.number().int().min(0).max(100),
+  feedback:              z.string().max(400),
+});
+
+export type ProjectDetail = z.infer<typeof ProjectDetailSchema>;
+
 const ResumeSectionSchema = z.object({
-  id:         z.string().max(40),
-  title:      z.string().max(80),
-  score:      z.number().int().min(0).max(100),
-  strengths:  z.array(z.string().max(200)).max(6),
-  weaknesses: z.array(z.string().max(200)).max(6),
-  suggestion: z.string().max(400),
+  id:             z.string().max(40),
+  title:          z.string().max(80),
+  score:          z.number().int().min(0).max(100),
+  strengths:      z.array(z.string().max(200)).max(6),
+  weaknesses:     z.array(z.string().max(200)).max(6),
+  suggestion:     z.string().max(400),
+  detected:       z.boolean().optional(),
+  projectDetails: z.array(ProjectDetailSchema).max(10).optional(),
 });
 
 const ActionStepSchema = z.object({
@@ -46,7 +65,8 @@ export const AIAnalysisResponseSchema = z.object({
   overallScore:           z.number().int().min(0).max(100),
   potentialScore:         z.number().int().min(0).max(100),
   grade:                  z.string().max(4),
-  betterThanPercent:      z.number().int().min(0).max(100),
+  potentialGrade:         z.string().max(4).optional(),
+  betterThanPercent:      z.number().int().min(0).max(100).nullable().optional(),
   interviewChancePercent: z.number().int().min(0).max(100),
   aiSummary:              z.string().max(1000),
 
@@ -58,15 +78,18 @@ export const AIAnalysisResponseSchema = z.object({
     skillsCoverage:     z.number().int().min(0).max(100),
     grammarClarity:     z.number().int().min(0).max(100),
     interviewReadiness: z.number().int().min(0).max(100),
+    keywordCoverage:    z.number().int().min(0).max(100).optional(),
   }),
 
   issuesData:          z.array(PriorityFixSchema).max(10),
   recommendationsData: z.array(AIRecommendationSchema).max(5),
 
   keywordsData: z.object({
-    matched:   z.array(KeywordSchema).max(20),
-    missing:   z.array(KeywordSchema).max(20),
-    suggested: z.array(KeywordSchema).max(10),
+    matched:          z.array(KeywordSchema).max(20),
+    missing:          z.array(KeywordSchema).max(20),
+    suggested:        z.array(KeywordSchema).max(10),
+    qualityIndicator: z.enum(["Needs Improvement", "Developing", "Good Foundation", "Strong", "Excellent"]).optional(),
+    isJobSpecific:    z.boolean().optional(),
   }),
 
   sectionsData:   z.array(ResumeSectionSchema).max(10),

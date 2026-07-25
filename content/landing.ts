@@ -6,7 +6,6 @@ import type {
   ComparisonRow,
   ReportItem,
   AudienceItem,
-  ProblemItem,
   FooterLinkGroup,
 } from "@/types";
 

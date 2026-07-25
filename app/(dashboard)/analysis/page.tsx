@@ -5,7 +5,7 @@ import Link from "next/link"
 import { History, Upload } from "lucide-react"
 import { db } from "@/db"
 import { resumes, analyses } from "@/db/schema"
-import { ResumeCard } from "@/components/resume/resume-card"
+import { ResumeList } from "@/components/resume/resume-list"
 import type { Analysis } from "@/db/schema"
 
 export default async function AnalysisHistoryPage() {
@@ -94,11 +94,7 @@ export default async function AnalysisHistoryPage() {
           </Link>
         </div>
       ) : (
-        <div className="space-y-4">
-          {resumeItems.map((item) => (
-            <ResumeCard key={item.resume.id} data={item} />
-          ))}
-        </div>
+        <ResumeList initialItems={resumeItems} />
       )}
     </div>
   )

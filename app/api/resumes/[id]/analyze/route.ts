@@ -5,6 +5,7 @@ import { resumes, analyses } from "@/db";
 import { openai } from "@/lib/ai/openai-client";
 import { AIAnalysisResponseSchema } from "@/lib/ai/analysis-schema";
 import { buildSystemPrompt, buildUserPrompt } from "@/lib/ai/resume-prompt";
+import { applyHeadingFallback } from "@/lib/ai/section-heading-fallback";
 
 // OpenAI SDK and the Node.js crypto module both require the Node.js runtime.
 export const runtime = "nodejs";
@@ -123,6 +124,14 @@ export async function POST(
     );
   }
 
+  // Task 4.3 — Short-circuit for empty / very short extracted text
+  if (content.extractedText.trim().length < 50) {
+    return Response.json(
+      { error: "Resume text is too short to analyze. Please upload a complete resume." },
+      { status: 422 }
+    );
+  }
+
   // Step 7 — Insert analyses row with status "running"
   const analysisId = crypto.randomUUID();
   const startedAt = new Date();
@@ -160,18 +169,61 @@ export async function POST(
   }
 
   // Step 9 — Call GitHub Models via OpenAI-compatible SDK (single call)
-  // Model: gpt-4o-mini is available on GitHub Models and supports json_object response_format.
+  //
+  // Model: gpt-4o (not gpt-4o-mini).
+  //
+  // GitHub Models imposes a hard 8,000-token input limit on gpt-4o-mini.
+  // The system prompt alone is ~11,000 tokens, which exceeds that cap and
+  // produces a 413 "Request body too large" error for every analysis request.
+  // gpt-4o on GitHub Models supports up to 128,000 tokens and handles the
+  // full system prompt + resume text comfortably.
+  //
+  // Pre-call size logging (development only) and a hard-limit guard prevent
+  // a silent 413 from reaching the user as an unhandled 500.
   let rawContent: string;
   try {
+    const systemPromptText = buildSystemPrompt();
+    const userPromptText = buildUserPrompt(content.extractedText, resume.targetJobTitle);
+
+    // Rough token estimate: 1 token ≈ 4 English characters.
+    // This is conservative; actual tokenisation may be slightly different.
+    const estimatedInputTokens = Math.round(
+      (systemPromptText.length + userPromptText.length) / 4
+    );
+
+    if (process.env.NODE_ENV === "development") {
+      console.info(
+        `[analyze] Input size estimate — system: ${systemPromptText.length} chars, ` +
+        `user: ${userPromptText.length} chars, ` +
+        `total: ~${estimatedInputTokens} tokens`
+      );
+    }
+
+    // Hard guard: if the estimated input still exceeds a safe ceiling
+    // (128k token model context minus 4k reserved for the JSON response),
+    // fail fast with a controlled error rather than letting the API return 413.
+    const TOKEN_CEILING = 124_000;
+    if (estimatedInputTokens > TOKEN_CEILING) {
+      console.error(
+        `[analyze] Input too large: ~${estimatedInputTokens} tokens exceeds ${TOKEN_CEILING}`
+      );
+      await setAnalysisFailed(
+        analysisId,
+        resumeId,
+        "Resume text is too large to analyze. Please upload a shorter resume."
+      );
+      return Response.json(
+        { error: "Resume text is too large to analyze. Please upload a shorter resume." },
+        { status: 422 }
+      );
+    }
+
     const completion = await openai.chat.completions.create({
-      model: "gpt-4o-mini",
+      model: "gpt-4o",
       response_format: { type: "json_object" },
       messages: [
-        { role: "system", content: buildSystemPrompt() },
-        {
-          role: "user",
-          content: buildUserPrompt(content.extractedText, resume.targetJobTitle),
-        },
+        { role: "system", content: systemPromptText },
+        { role: "user",   content: userPromptText },
       ],
       temperature: 0.3, // Lower temperature for more consistent structured output
     });
@@ -211,6 +263,44 @@ export async function POST(
     );
   }
 
+  // Task 4.1 — Deterministic potentialScore calculation.
+  //
+  // The AI's potentialScore is a holistic estimate and is frequently
+  // inconsistent with the actionPlanData scoreGain values displayed in the
+  // Improvement Forecast UI.  For example the AI may return potentialScore=75
+  // while listing action steps that total +40 points — the ForecastCard then
+  // shows "+10" overall but individual "+10/+10/+10/+5/+5" steps, which is
+  // visually contradictory.
+  //
+  // Fix: compute potentialScore deterministically as
+  //   overallScore + sum(actionPlanData[].scoreGain), capped at 100.
+  // This ensures the ForecastCard's "Estimated Final Score" is always the
+  // arithmetic sum of the displayed step gains, eliminating the contradiction.
+  //
+  // The floor (Math.max with overallScore) preserves the invariant
+  //   overallScore <= potentialScore <= 100
+  // even when actionPlanData is empty.
+  {
+    const stepGainSum = (parsed.actionPlanData ?? []).reduce(
+      (acc, step) => acc + (step.scoreGain ?? 0),
+      0
+    );
+    const computed = parsed.overallScore + stepGainSum;
+    parsed = {
+      ...parsed,
+      potentialScore: Math.min(100, Math.max(parsed.overallScore, computed)),
+    };
+  }
+
+  // Plain-text section heading fallback for OCR-extracted resumes.
+  // The AI may mark sections as not-detected even when the OCR text contains
+  // a matching standalone heading.  This step promotes those sections to
+  // detected: true without altering any section the AI already confirmed.
+  parsed = {
+    ...parsed,
+    sectionsData: applyHeadingFallback(parsed.sectionsData, content.extractedText),
+  };
+
   // Step 11 — Transactional persistence
   const completedAt = new Date();
   const durationMs = completedAt.getTime() - startedAt.getTime();
@@ -227,7 +317,7 @@ export async function POST(
           overallScore: parsed.overallScore,
           potentialScore: parsed.potentialScore,
           grade: parsed.grade,
-          betterThanPercent: parsed.betterThanPercent,
+          betterThanPercent: null, // Task 4.2 — new analyses never emit a fake percentile rank
           interviewChancePercent: parsed.interviewChancePercent,
           aiSummary: parsed.aiSummary,
           scoreData: parsed.scoreData,

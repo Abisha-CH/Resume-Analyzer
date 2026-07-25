@@ -19,8 +19,7 @@ interface ClerkUserCreatedData {
   image_url: string | null;
 }
 
-interface ClerkUserUpdatedData extends ClerkUserCreatedData {}
-
+type ClerkUserUpdatedData = ClerkUserCreatedData;
 interface ClerkUserDeletedData {
   id: string;
   deleted: boolean;

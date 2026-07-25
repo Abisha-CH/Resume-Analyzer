@@ -169,3 +169,28 @@ export async function listResumes(): Promise<ListResumesResponse> {
 
   return handleResponse<ListResumesResponse>(res);
 }
+
+// ─── Delete ───────────────────────────────────────────────────────────────────
+
+export interface DeleteResumeResponse {
+  success: true;
+  resumeId: string;
+}
+
+/**
+ * DELETE /api/resumes/[id]
+ * Permanently deletes a resume, its parsed content, analysis records, and
+ * the uploaded file from Supabase Storage.
+ *
+ * Possible ApiError statuses:
+ *   401 — not authenticated
+ *   404 — resume not found or belongs to another user
+ *   500 — server/storage error
+ */
+export async function deleteResume(resumeId: string): Promise<DeleteResumeResponse> {
+  const res = await fetch(`/api/resumes/${resumeId}`, {
+    method: "DELETE",
+  });
+
+  return handleResponse<DeleteResumeResponse>(res);
+}

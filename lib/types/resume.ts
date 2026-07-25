@@ -24,6 +24,7 @@ import type {
   AIRecommendation,
   ResumeSection,
   ActionStep,
+  ProjectDetail,
 } from "@/content/report-mock";
 
 // ─── Re-export DB row types ────────────────────────────────────────────────────
@@ -43,6 +44,7 @@ export type ResumeStatus = Resume["status"];
 export interface ScoreData {
   ats: number;
   keywordMatch: number;
+  keywordCoverage?: number;
   experienceQuality: number;
   formatting: number;
   skillsCoverage: number;
@@ -50,15 +52,24 @@ export interface ScoreData {
   interviewReadiness: number;
 }
 
+export type QualityIndicator =
+  | "Needs Improvement"
+  | "Developing"
+  | "Good Foundation"
+  | "Strong"
+  | "Excellent";
+
 export interface KeywordsData {
   matched: Keyword[];
   missing: Keyword[];
   suggested: Keyword[];
+  qualityIndicator?: QualityIndicator;
+  isJobSpecific?: boolean;
 }
 
 // PriorityFix, AIRecommendation, ResumeSection, ActionStep are imported directly
 // from content/report-mock.ts (they match the Zod sub-schemas exactly).
-export type { ScoreMetric, ScoreStatus, Keyword, PriorityFix, AIRecommendation, ResumeSection, ActionStep };
+export type { ScoreMetric, ScoreStatus, Keyword, PriorityFix, AIRecommendation, ResumeSection, ActionStep, ProjectDetail };
 
 // ─── Resume list item ─────────────────────────────────────────────────────────
 //
@@ -119,11 +130,12 @@ export interface AnalysisResult {
   completedAt: Date | null;
   durationMs: number | null;
 
+  // potentialGrade from AI — absent in legacy records, falls back to "A" in UI
+  potentialGrade: string | null;
+
   // Error (only populated when status === "failed")
   errorMessage: string | null;
 }
-
-// ─── Resume with full analysis (used by report page) ─────────────────────────
 
 export interface ResumeWithAnalysis {
   resume: Resume;
@@ -151,7 +163,7 @@ function isArray(v: unknown): v is unknown[] {
 
 export function mapScoreData(raw: unknown): ScoreData | null {
   if (!isObject(raw)) return null;
-  const { ats, keywordMatch, experienceQuality, formatting, skillsCoverage, grammarClarity, interviewReadiness } = raw;
+  const { ats, keywordMatch, keywordCoverage, experienceQuality, formatting, skillsCoverage, grammarClarity, interviewReadiness } = raw;
   if (
     typeof ats !== "number" ||
     typeof keywordMatch !== "number" ||
@@ -159,21 +171,24 @@ export function mapScoreData(raw: unknown): ScoreData | null {
     typeof formatting !== "number" ||
     typeof skillsCoverage !== "number" ||
     typeof grammarClarity !== "number" ||
-    typeof interviewReadiness !== "number"
+    typeof interviewReadiness !== "number" ||
+    (keywordCoverage !== undefined && typeof keywordCoverage !== "number")
   ) {
     return null;
   }
-  return { ats, keywordMatch, experienceQuality, formatting, skillsCoverage, grammarClarity, interviewReadiness };
+  return { ats, keywordMatch, keywordCoverage: keywordCoverage as number | undefined, experienceQuality, formatting, skillsCoverage, grammarClarity, interviewReadiness };
 }
 
 export function mapKeywordsData(raw: unknown): KeywordsData | null {
   if (!isObject(raw)) return null;
-  const { matched, missing, suggested } = raw;
+  const { matched, missing, suggested, qualityIndicator, isJobSpecific } = raw;
   if (!isArray(matched) || !isArray(missing) || !isArray(suggested)) return null;
   return {
-    matched:   matched   as Keyword[],
-    missing:   missing   as Keyword[],
-    suggested: suggested as Keyword[],
+    matched:          matched   as Keyword[],
+    missing:          missing   as Keyword[],
+    suggested:        suggested as Keyword[],
+    qualityIndicator: qualityIndicator as QualityIndicator | undefined,
+    isJobSpecific:    typeof isJobSpecific === "boolean" ? isJobSpecific : undefined,
   };
 }
 
@@ -224,6 +239,7 @@ export function mapAnalysisRow(row: Analysis): AnalysisResult {
     startedAt:             row.startedAt             ?? null,
     completedAt:           row.completedAt           ?? null,
     durationMs:            row.durationMs            ?? null,
+    potentialGrade:        null, // stored inside rawResponse for new analyses; legacy rows don't have it
     errorMessage:          row.errorMessage          ?? null,
   };
 }
@@ -254,11 +270,13 @@ export function scoreDataToMetrics(scoreData: ScoreData): ScoreMetric[] {
     },
     {
       id:          "keywords",
-      label:       "Keyword Match",
-      score:       scoreData.keywordMatch,
-      status:      scoreToStatus(scoreData.keywordMatch),
-      explanation: "Alignment of your resume keywords with recruiter expectations.",
-      trend:       0,
+      label:       scoreData.keywordCoverage !== undefined ? "Keyword Coverage" : "Keyword Match",
+      score:       scoreData.keywordCoverage !== undefined ? scoreData.keywordCoverage : scoreData.keywordMatch,
+      status:      scoreToStatus(scoreData.keywordCoverage !== undefined ? scoreData.keywordCoverage : scoreData.keywordMatch),
+      explanation: scoreData.keywordCoverage !== undefined
+        ? "General keyword coverage across your resume."
+        : "Alignment of your resume keywords with recruiter expectations.",
+      trend: 0,
     },
     {
       id:          "experience",

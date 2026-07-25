@@ -5,16 +5,17 @@ import { LayoutDashboard, Upload, History, TrendingUp, Sparkles } from "lucide-r
 import Link from "next/link";
 import { db } from "@/db";
 import { resumes, analyses } from "@/db/schema";
-import { ResumeCard } from "@/components/resume/resume-card";
+import { ResumeList } from "@/components/resume/resume-list";
 import type { Analysis } from "@/db/schema";
 
 export default async function DashboardPage() {
   const { userId } = await auth();
-  if (!userId) redirect("/sign-in");
 
-  const user = await currentUser();
-  const firstName = user?.firstName ?? "there";
+  if (!userId) {
+    redirect("/sign-in");
+  }
 
+  const firstName = "there";
   // ── Query all user resumes ──────────────────────────────────────────────────
   const userResumes = await db
     .select()
@@ -185,11 +186,7 @@ export default async function DashboardPage() {
             </Link>
           </div>
         ) : (
-          <div className="space-y-4">
-            {recentItems.map((item) => (
-              <ResumeCard key={item.resume.id} data={item} />
-            ))}
-          </div>
+          <ResumeList initialItems={recentItems} />
         )}
       </div>
     </div>

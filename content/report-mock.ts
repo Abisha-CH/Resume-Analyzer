@@ -140,6 +140,11 @@ export interface PriorityFix {
   explanation: string;
   scoreGain: number;
   effort: EffortLevel;
+  // Evidence-based enrichment fields — optional, only populated by new analyses
+  evidence?: string;
+  recommendation?: string;
+  estimatedImpact?: "low" | "medium" | "high";
+  estimatedEffort?: string;
 }
 
 export const priorityFixes: PriorityFix[] = [
@@ -229,6 +234,16 @@ export const aiRecommendations: AIRecommendation[] = [
 
 // ─── Section Analysis ─────────────────────────────────────────────────────────
 
+export interface ProjectDetail {
+  name: string;
+  technologiesDetected: string[];
+  descriptionQuality: "missing" | "minimal" | "adequate" | "detailed";
+  hasActionVerbs: boolean;
+  hasMeasurableOutcomes: boolean;
+  clarityScore: number;
+  feedback: string;
+}
+
 export interface ResumeSection {
   id: string;
   title: string;
@@ -236,6 +251,8 @@ export interface ResumeSection {
   strengths: string[];
   weaknesses: string[];
   suggestion: string;
+  detected?: boolean;          // NEW — optional
+  projectDetails?: ProjectDetail[];  // NEW — optional, only used for the projects section
 }
 
 export const resumeSections: ResumeSection[] = [

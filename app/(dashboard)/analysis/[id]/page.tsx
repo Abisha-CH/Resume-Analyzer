@@ -16,6 +16,8 @@ import { SectionAnalysisCard } from "@/components/report/section-analysis-card"
 import { ForecastCard } from "@/components/report/forecast-card"
 import { AnalysisCard } from "@/components/report/analysis-card"
 import { DonutChart } from "@/components/report/charts"
+import { Badge } from "@/components/ui/badge"
+import { DownloadReportButton } from "@/components/report/download-report-button"
 import type { Analysis } from "@/db/schema"
 
 interface PageProps {
@@ -63,13 +65,23 @@ export default async function AnalysisReportPage({ params }: PageProps) {
     .then((rows) => rows[0] ?? null)
 
   // ── "Not analyzed yet" state ───────────────────────────────────────────────
-  if (!rawAnalysis || resume.status === "pending" || resume.status === "parsed" || resume.status === "processing") {
+  if (
+    !rawAnalysis ||
+    resume.status === "pending" ||
+    resume.status === "parsed" ||
+    resume.status === "processing"
+  ) {
     return (
       <div className="space-y-8">
         <ReportHeader filename={resume.originalName} grade={null} />
         <div className="flex flex-col items-center justify-center rounded-2xl border border-dashed border-border bg-surface-subtle py-20 text-center">
-          <Clock className="mb-3 h-10 w-10 text-foreground-subtle" aria-hidden="true" />
-          <p className="text-sm font-medium text-foreground-muted">No analysis yet</p>
+          <Clock
+            className="mb-3 h-10 w-10 text-foreground-subtle"
+            aria-hidden="true"
+          />
+          <p className="text-sm font-medium text-foreground-muted">
+            No analysis yet
+          </p>
           <p className="mt-1 text-xs text-foreground-subtle">
             {resume.status === "parsed"
               ? "Your resume is ready — run the AI analysis."
@@ -93,10 +105,16 @@ export default async function AnalysisReportPage({ params }: PageProps) {
       <div className="space-y-8">
         <ReportHeader filename={resume.originalName} grade={null} />
         <div className="flex flex-col items-center justify-center rounded-2xl border border-dashed border-border bg-surface-subtle py-20 text-center">
-          <Clock className="mb-3 h-10 w-10 animate-pulse text-primary" aria-hidden="true" />
-          <p className="text-sm font-medium text-foreground">Analyzing your resume…</p>
+          <Clock
+            className="mb-3 h-10 w-10 animate-pulse text-primary"
+            aria-hidden="true"
+          />
+          <p className="text-sm font-medium text-foreground">
+            Analyzing your resume…
+          </p>
           <p className="mt-1 text-xs text-foreground-subtle">
-            This usually takes 15–30 seconds. Refresh the page to check for results.
+            This usually takes 15–30 seconds. Refresh the page to check for
+            results.
           </p>
         </div>
       </div>
@@ -109,8 +127,13 @@ export default async function AnalysisReportPage({ params }: PageProps) {
       <div className="space-y-8">
         <ReportHeader filename={resume.originalName} grade={null} />
         <div className="flex flex-col items-center justify-center rounded-2xl border border-error-muted bg-error-light/30 py-20 text-center">
-          <AlertTriangle className="mb-3 h-10 w-10 text-error" aria-hidden="true" />
-          <p className="text-sm font-medium text-foreground">Analysis failed</p>
+          <AlertTriangle
+            className="mb-3 h-10 w-10 text-error"
+            aria-hidden="true"
+          />
+          <p className="text-sm font-medium text-foreground">
+            Analysis failed
+          </p>
           {analysis.errorMessage && (
             <p className="mt-1 max-w-sm text-xs text-foreground-muted">
               {analysis.errorMessage}
@@ -125,7 +148,9 @@ export default async function AnalysisReportPage({ params }: PageProps) {
   }
 
   // ── Completed — render full report ─────────────────────────────────────────
-  const scoreMetrics = analysis.scoreData ? scoreDataToMetrics(analysis.scoreData) : []
+  const scoreMetrics = analysis.scoreData
+    ? scoreDataToMetrics(analysis.scoreData)
+    : []
 
   return (
     <div className="space-y-10">
@@ -133,10 +158,22 @@ export default async function AnalysisReportPage({ params }: PageProps) {
       <ReportHeader
         filename={resume.originalName}
         grade={analysis.grade}
+        downloadButton={
+          <DownloadReportButton
+            analysis={analysis}
+            filename={resume.originalName}
+          />
+        }
       />
 
-      {/* ── Donut charts row ── */}
-      {(analysis.overallScore != null || analysis.potentialScore != null) && (
+      {/* ── Score charts and keyword quality ── */}
+      {(
+        analysis.overallScore != null ||
+        analysis.potentialScore != null ||
+        analysis.keywordsData?.qualityIndicator != null ||
+        analysis.betterThanPercent != null ||
+        analysis.interviewChancePercent != null
+      ) && (
         <div className="flex flex-wrap items-start justify-center gap-8 rounded-2xl border border-border bg-surface p-6 shadow-sm">
           {analysis.overallScore != null && (
             <DonutChart
@@ -148,6 +185,7 @@ export default async function AnalysisReportPage({ params }: PageProps) {
               strokeWidth={10}
             />
           )}
+
           {analysis.potentialScore != null && (
             <DonutChart
               value={analysis.potentialScore}
@@ -157,7 +195,21 @@ export default async function AnalysisReportPage({ params }: PageProps) {
               strokeWidth={10}
             />
           )}
-          {analysis.betterThanPercent != null && (
+
+          {/* New analyses: show Keyword Quality badge */}
+          {analysis.keywordsData?.qualityIndicator ? (
+            <Badge
+              variant="outline"
+              className="h-auto rounded-xl px-4 py-3 text-sm font-medium"
+            >
+              Keyword Quality:{" "}
+              {analysis.keywordsData.qualityIndicator
+                .charAt(0)
+                .toUpperCase() +
+                analysis.keywordsData.qualityIndicator.slice(1)}
+            </Badge>
+          ) : analysis.betterThanPercent != null ? (
+            /* Legacy analyses: preserve Better Than donut */
             <DonutChart
               value={analysis.betterThanPercent}
               label="Better Than"
@@ -166,7 +218,8 @@ export default async function AnalysisReportPage({ params }: PageProps) {
               size={120}
               strokeWidth={10}
             />
-          )}
+          ) : null}
+
           {analysis.interviewChancePercent != null && (
             <DonutChart
               value={analysis.interviewChancePercent}
@@ -191,7 +244,11 @@ export default async function AnalysisReportPage({ params }: PageProps) {
         >
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
             {scoreMetrics.map((metric, i) => (
-              <ScoreCard key={metric.id} metric={metric} delay={i * 0.05} />
+              <ScoreCard
+                key={metric.id}
+                metric={metric}
+                delay={i * 0.05}
+              />
             ))}
           </div>
         </AnalysisCard>
@@ -205,9 +262,18 @@ export default async function AnalysisReportPage({ params }: PageProps) {
           description="Keywords found, missing, and suggested for your target role."
         >
           <div className="space-y-6">
-            <KeywordGroup type="matched" keywords={analysis.keywordsData.matched} />
-            <KeywordGroup type="missing" keywords={analysis.keywordsData.missing} />
-            <KeywordGroup type="suggested" keywords={analysis.keywordsData.suggested} />
+            <KeywordGroup
+              type="matched"
+              keywords={analysis.keywordsData.matched}
+            />
+            <KeywordGroup
+              type="missing"
+              keywords={analysis.keywordsData.missing}
+            />
+            <KeywordGroup
+              type="suggested"
+              keywords={analysis.keywordsData.suggested}
+            />
           </div>
         </AnalysisCard>
       )}
@@ -221,26 +287,35 @@ export default async function AnalysisReportPage({ params }: PageProps) {
         >
           <div className="space-y-3">
             {analysis.issuesData.map((fix, i) => (
-              <ImprovementCard key={fix.id} fix={fix} delay={i * 0.05} />
+              <ImprovementCard
+                key={fix.id}
+                fix={fix}
+                delay={i * 0.05}
+              />
             ))}
           </div>
         </AnalysisCard>
       )}
 
       {/* ── AI Recommendations ── */}
-      {analysis.recommendationsData && analysis.recommendationsData.length > 0 && (
-        <AnalysisCard
-          id="recommendations"
-          title="AI Recommendations"
-          description="Personalized suggestions generated by ResuMind AI."
-        >
-          <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
-            {analysis.recommendationsData.map((rec, i) => (
-              <RecommendationCard key={rec.id} rec={rec} delay={i * 0.05} />
-            ))}
-          </div>
-        </AnalysisCard>
-      )}
+      {analysis.recommendationsData &&
+        analysis.recommendationsData.length > 0 && (
+          <AnalysisCard
+            id="recommendations"
+            title="AI Recommendations"
+            description="Personalized suggestions generated by ResuMind AI."
+          >
+            <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
+              {analysis.recommendationsData.map((rec, i) => (
+                <RecommendationCard
+                  key={rec.id}
+                  rec={rec}
+                  delay={i * 0.05}
+                />
+              ))}
+            </div>
+          </AnalysisCard>
+        )}
 
       {/* ── Section Analysis ── */}
       {analysis.sectionsData && analysis.sectionsData.length > 0 && (
@@ -251,7 +326,11 @@ export default async function AnalysisReportPage({ params }: PageProps) {
         >
           <div className="space-y-3">
             {analysis.sectionsData.map((section, i) => (
-              <SectionAnalysisCard key={section.id} section={section} delay={i * 0.05} />
+              <SectionAnalysisCard
+                key={section.id}
+                section={section}
+                delay={i * 0.05}
+              />
             ))}
           </div>
         </AnalysisCard>
@@ -271,7 +350,7 @@ export default async function AnalysisReportPage({ params }: PageProps) {
               currentScore={analysis.overallScore}
               potentialScore={analysis.potentialScore}
               currentGrade={analysis.grade ?? "—"}
-              potentialGrade="A"
+              potentialGrade={analysis.potentialGrade ?? "A"}
               steps={analysis.actionPlanData}
             />
           </AnalysisCard>
@@ -284,9 +363,11 @@ export default async function AnalysisReportPage({ params }: PageProps) {
 function ReportHeader({
   filename,
   grade,
+  downloadButton,
 }: {
   filename: string
   grade: string | null
+  downloadButton?: React.ReactNode
 }) {
   return (
     <div className="flex flex-wrap items-start justify-between gap-4">
@@ -295,20 +376,32 @@ function ReportHeader({
           href="/analysis"
           className="mb-2 inline-flex items-center gap-1.5 text-xs text-foreground-subtle transition-colors hover:text-foreground"
         >
-          <ArrowLeft className="h-3.5 w-3.5" aria-hidden="true" />
+          <ArrowLeft
+            className="h-3.5 w-3.5"
+            aria-hidden="true"
+          />
           Back to History
         </Link>
-        <h1 className="text-2xl font-bold text-foreground">{filename}</h1>
-        <p className="mt-1 text-sm text-foreground-muted">AI Resume Analysis Report</p>
+        <h1 className="text-2xl font-bold text-foreground">
+          {filename}
+        </h1>
+        <p className="mt-1 text-sm text-foreground-muted">
+          AI Resume Analysis Report
+        </p>
       </div>
-      {grade && (
-        <span
-          className="rounded-2xl bg-primary-light px-5 py-2 text-2xl font-bold text-primary ring-1 ring-primary-muted"
-          aria-label={`Grade: ${grade}`}
-        >
-          {grade}
-        </span>
-      )}
+
+      <div className="flex items-center gap-3">
+        {downloadButton}
+        {grade && (
+          <span
+            className="rounded-2xl bg-primary-light px-5 py-2 text-2xl font-bold text-primary ring-1 ring-primary-muted"
+            aria-label={`Grade: ${ grade } `}
+          >
+            {grade}
+          </span>
+        )}
+      </div>
     </div>
   )
 }
+

@@ -11,6 +11,8 @@ import type { ResumeStatus } from "@/lib/types/resume"
 interface AnalyzeButtonProps {
   resumeId: string
   resumeStatus: ResumeStatus
+  /** Optional id forwarded to the underlying button — used by the three-dot menu to trigger a click */
+  id?: string
 }
 
 type ButtonState =
@@ -21,7 +23,7 @@ type ButtonState =
   | { kind: "auth_error" }
   | { kind: "error"; message: string }
 
-export function AnalyzeButton({ resumeId, resumeStatus }: AnalyzeButtonProps) {
+export function AnalyzeButton({ resumeId, resumeStatus, id }: AnalyzeButtonProps) {
   const router = useRouter()
   const [btnState, setBtnState] = useState<ButtonState>({ kind: "idle" })
 
@@ -107,6 +109,7 @@ export function AnalyzeButton({ resumeId, resumeStatus }: AnalyzeButtonProps) {
   // idle
   return (
     <Button
+      id={id}
       size="sm"
       onClick={handleClick}
       disabled={isDisabled}
