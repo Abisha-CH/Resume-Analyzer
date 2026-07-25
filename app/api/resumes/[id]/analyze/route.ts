@@ -200,9 +200,9 @@ export async function POST(
     }
 
     // Hard guard: if the estimated input still exceeds a safe ceiling
-    // (128k token model context minus 4k reserved for the JSON response),
+    // (8k token model limit minus 1.5k reserved for the JSON response),
     // fail fast with a controlled error rather than letting the API return 413.
-    const TOKEN_CEILING = 124_000;
+    const TOKEN_CEILING = 6_500;
     if (estimatedInputTokens > TOKEN_CEILING) {
       console.error(
         `[analyze] Input too large: ~${estimatedInputTokens} tokens exceeds ${TOKEN_CEILING}`
