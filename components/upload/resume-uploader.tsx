@@ -1,14 +1,17 @@
 "use client"
 
 import { useCallback, useEffect, useRef, useState } from "react"
+import { useRouter } from "next/navigation"
 import { Upload, FileText, CheckCircle, AlertCircle, Loader2 } from "lucide-react"
 import { cn } from "@/lib/utils"
+import { uploadResume, parseResume, ApiError } from "@/lib/api/resumes"
 
-type UploadState =
+type UploadPhase =
   | { phase: "idle" }
   | { phase: "selected"; file: File }
   | { phase: "uploading"; file: File }
-  | { phase: "success"; file: File; resumeId: string; storagePath: string }
+  | { phase: "parsing"; file: File; resumeId: string }
+  | { phase: "success"; file: File; resumeId: string }
   | { phase: "error"; file: File | null; message: string }
 
 const ALLOWED_MIME_TYPES = [
@@ -25,7 +28,8 @@ function formatFileSize(size: number): string {
 }
 
 export default function ResumeUploader() {
-  const [state, setState] = useState<UploadState>({ phase: "idle" })
+  const router = useRouter()
+  const [state, setState] = useState<UploadPhase>({ phase: "idle" })
   const [isDragOver, setIsDragOver] = useState(false)
   const fileInputRef = useRef<HTMLInputElement>(null)
   const uploadBtnRef = useRef<HTMLButtonElement>(null)
@@ -36,6 +40,16 @@ export default function ResumeUploader() {
       uploadBtnRef.current?.focus()
     }
   }, [state.phase])
+
+  // Redirect after brief success state
+  useEffect(() => {
+    if (state.phase === "success") {
+      const timer = setTimeout(() => {
+        router.push("/analysis")
+      }, 1000)
+      return () => clearTimeout(timer)
+    }
+  }, [state.phase, router])
 
   const handleFileSelected = useCallback((file: File) => {
     // 1. MIME type check
@@ -66,7 +80,6 @@ export default function ResumeUploader() {
       })
       return
     }
-    // All checks passed
     setState({ phase: "selected", file })
   }, [])
 
@@ -74,39 +87,29 @@ export default function ResumeUploader() {
     if (state.phase !== "selected") return
 
     const file = state.file
-    const fd = new FormData()
-    fd.append("file", file)
-
     setState({ phase: "uploading", file })
 
     try {
-      const res = await fetch("/api/resumes/upload", { method: "POST", body: fd })
-      const json = await res.json()
+      // Step 1: Upload
+      const uploadResult = await uploadResume(file)
+      const { resumeId } = uploadResult
 
-      if (res.ok) {
-        setState({
-          phase: "success",
-          file,
-          resumeId: json.resumeId,
-          storagePath: json.storagePath,
-        })
-      } else {
-        setState({
-          phase: "error",
-          file,
-          message: json.error ?? "Upload failed. Please try again.",
-        })
-      }
-    } catch {
-      setState({
-        phase: "error",
-        file,
-        message: "Upload failed. Please try again.",
-      })
+      // Step 2: Parse
+      setState({ phase: "parsing", file, resumeId })
+      await parseResume(resumeId)
+
+      // Step 3: Show success (redirect happens via useEffect)
+      setState({ phase: "success", file, resumeId })
+    } catch (err) {
+      const message =
+        err instanceof ApiError
+          ? err.message
+          : "Upload failed. Please try again."
+      setState({ phase: "error", file, message })
     }
   }, [state])
 
-  const isUploading = state.phase === "uploading"
+  const isBusy = state.phase === "uploading" || state.phase === "parsing"
 
   return (
     <div className="rounded-2xl border border-border bg-surface p-6 shadow-sm">
@@ -120,7 +123,6 @@ export default function ResumeUploader() {
         onChange={(e) => {
           const file = e.target.files?.[0]
           if (file) handleFileSelected(file)
-          // Reset so the same file can be re-selected
           e.target.value = ""
         }}
       />
@@ -133,7 +135,7 @@ export default function ResumeUploader() {
         className={cn(
           "flex flex-col items-center justify-center rounded-xl border-2 border-dashed border-border bg-surface-subtle py-16 text-center transition-colors",
           isDragOver && "ring-2 ring-primary bg-primary-light",
-          isUploading && "pointer-events-none opacity-50",
+          isBusy && "pointer-events-none opacity-50",
         )}
         onDragOver={(e) => {
           e.preventDefault()
@@ -192,7 +194,7 @@ export default function ResumeUploader() {
               className="mt-5 inline-flex items-center gap-2 rounded-lg bg-primary px-5 py-2.5 text-sm font-medium text-white shadow-sm transition-colors hover:bg-primary-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
             >
               <Upload className="h-4 w-4" aria-hidden="true" />
-              Upload Resume
+              Upload &amp; Analyze
             </button>
             <button
               type="button"
@@ -208,10 +210,7 @@ export default function ResumeUploader() {
         {state.phase === "uploading" && (
           <>
             <div className="mb-4 flex h-14 w-14 items-center justify-center rounded-2xl bg-primary-light ring-1 ring-primary-muted">
-              <Loader2
-                className="h-6 w-6 animate-spin text-primary"
-                aria-hidden="true"
-              />
+              <Loader2 className="h-6 w-6 animate-spin text-primary" aria-hidden="true" />
             </div>
             <p className="text-sm font-semibold text-foreground">Uploading…</p>
             <p className="mt-1 text-xs text-foreground-muted">{state.file.name}</p>
@@ -227,6 +226,26 @@ export default function ResumeUploader() {
           </>
         )}
 
+        {/* ── parsing ── */}
+        {state.phase === "parsing" && (
+          <>
+            <div className="mb-4 flex h-14 w-14 items-center justify-center rounded-2xl bg-primary-light ring-1 ring-primary-muted">
+              <Loader2 className="h-6 w-6 animate-spin text-primary" aria-hidden="true" />
+            </div>
+            <p className="text-sm font-semibold text-foreground">Parsing…</p>
+            <p className="mt-1 text-xs text-foreground-muted">{state.file.name}</p>
+            <button
+              type="button"
+              disabled
+              aria-busy="true"
+              className="mt-5 inline-flex cursor-not-allowed items-center gap-2 rounded-lg bg-primary px-5 py-2.5 text-sm font-medium text-white opacity-60 shadow-sm"
+            >
+              <Loader2 className="h-4 w-4 animate-spin" aria-hidden="true" />
+              Parsing…
+            </button>
+          </>
+        )}
+
         {/* ── success ── */}
         {state.phase === "success" && (
           <div role="status" className="flex flex-col items-center">
@@ -234,15 +253,9 @@ export default function ResumeUploader() {
               <CheckCircle className="h-6 w-6 text-success" aria-hidden="true" />
             </div>
             <p className="text-sm font-semibold text-foreground">{state.file.name}</p>
-            <p className="mt-1 text-xs text-foreground-subtle">Successfully uploaded</p>
-            <button
-              type="button"
-              onClick={() => setState({ phase: "idle" })}
-              className="mt-5 inline-flex items-center gap-2 rounded-lg bg-primary px-5 py-2.5 text-sm font-medium text-white shadow-sm transition-colors hover:bg-primary-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
-            >
-              <Upload className="h-4 w-4" aria-hidden="true" />
-              Upload another resume
-            </button>
+            <p className="mt-1 text-xs text-foreground-subtle">
+              Uploaded &amp; parsed — redirecting…
+            </p>
           </div>
         )}
 
